@@ -194,6 +194,7 @@ class RayWorkerGroup(WorkerGroup):
         if self._is_init_with_detached_workers:
             self._init_with_detached_workers(worker_names=worker_names)
         else:
+            breakpoint()
             self._init_with_resource_pool(resource_pool=resource_pool,
                                           ray_cls_with_init=ray_cls_with_init,
                                           bin_pack=bin_pack,
