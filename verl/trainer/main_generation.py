@@ -62,12 +62,10 @@ def main(config):
    
     ray_cls_with_init = RayClassWithInitArgs(cls=ray.remote(ActorRolloutRefWorker), config=config, role='rollout')
     resource_pool = RayResourcePool(process_on_nodes=[config.trainer.n_gpus_per_node] * config.trainer.nnodes)
-    breakpoint()
     wg = RayWorkerGroup(resource_pool=resource_pool, ray_cls_with_init=ray_cls_with_init)
     wg.init_model()
 
     total_samples = len(dataset)
-    breakpoint()
     # real_batch_size = data.batch['input_ids'].shape[0]
     config_batch_size = config.data.batch_size
     dp_size = wg.world_size // config.rollout.tensor_model_parallel_size
