@@ -40,7 +40,7 @@ if __name__ == "__main__":
     model, tokenizer = load_model()
     
     # Example prompt
-    prompt = "Using the numbers [19, 36, 55, 7], create an equation that equals 65."
+    prompt = "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.\nUser: Using the numbers [79, 17, 60], create an equation that equals 36. You can use basic arithmetic operations (+, -, *, /) and each number can only be used once. Show your work in <think> </think> tags. And return the final answer in <answer> </answer> tags, for example <answer> (1 + 2) / 3 </answer>.\nAssistant: Let me solve this step by step.\n<think>"
     
     # Generate text
     generated_text = generate_text(prompt, model, tokenizer)

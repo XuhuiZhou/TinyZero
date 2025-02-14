@@ -8,7 +8,7 @@
 #SBATCH --output=log_%j.out          # Standard output log
 #SBATCH --error=log_%j.err           # Standard error log
 #SBATCH --partition=preempt         # Add partition name
-#SBATCH --gres=gpu:A100_80GB:4      # Request 2 A100 GPUs
+#SBATCH --gres=gpu:A100_80GB:2      # Request 2 A100 GPUs
 ##SBATCH --gres=gpu:h100:2          # Uncomment this and comment above line for H100s
 
 # Load any necessary modules here
