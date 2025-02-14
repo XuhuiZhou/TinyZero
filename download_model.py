@@ -1,7 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-model_name = "Qwen/Qwen2.5-0.5B"  # or whichever Qwen2 model you're using
-save_path = "/usr2/xuhuiz/models/Qwen2.5-0.5B"
+model_name = "Qwen/Qwen2.5-3B"  # or whichever Qwen2 model you're using
+save_path = "./models/Qwen2.5-3B"
 
 # Download and save the model and tokenizer
 tokenizer = AutoTokenizer.from_pretrained(model_name)
