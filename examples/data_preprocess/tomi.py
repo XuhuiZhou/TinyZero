@@ -8,6 +8,7 @@ from datasets import Dataset
 from typing import List
 from verl.utils.hdfs_io import copy, makedirs
 import argparse
+from huggingface_hub import hf_hub_download
 
 
 def load_tomi_data(file_path: str) -> List[dict]:
@@ -76,9 +77,45 @@ def main():
                        help='Template type for prompts')
     args = parser.parse_args()
 
-    # Load existing train and test datasets
-    train_dataset = Dataset.from_json(os.path.join(args.local_dir, f'{args.tomi_file}_train.jsonl'))
-    test_dataset = Dataset.from_json(os.path.join(args.local_dir, f'{args.tomi_file}_test.jsonl'))
+    # Create local directory if it doesn't exist
+    os.makedirs(args.local_dir, exist_ok=True)
+
+    # Check if TOMI files exist, if not download from Huggingface
+    train_file = os.path.join(args.local_dir, f'{args.tomi_file}_train.jsonl')
+    test_file = os.path.join(args.local_dir, f'{args.tomi_file}_test.jsonl')
+    
+    if not (os.path.exists(train_file) and os.path.exists(test_file)):
+        print("Downloading TOMI dataset from Huggingface...")
+        repo_id = "Xuhui/social-reasoning"
+        train_filename = "rephrased_tomi_train.jsonl"
+        test_filename = "rephrased_tomi_test.jsonl"
+        downloaded_train_file = hf_hub_download(
+            repo_id=repo_id,
+            filename=train_filename,
+            repo_type="dataset"
+        )
+        downloaded_test_file = hf_hub_download(
+            repo_id=repo_id,
+            filename=test_filename,
+            repo_type="dataset"
+        )
+        # Load and split the downloaded data
+        with open(downloaded_train_file, 'r') as f:
+            train_data = [json.loads(line) for line in f]
+        with open(downloaded_test_file, 'r') as f:
+            test_data = [json.loads(line) for line in f]
+        
+        # write train and test data to local file
+        with open(train_file, 'w') as f:
+            for item in train_data:
+                f.write(json.dumps(item) + '\n')
+        with open(test_file, 'w') as f:
+            for item in test_data:
+                f.write(json.dumps(item) + '\n')
+
+    # Load and process datasets
+    train_dataset = Dataset.from_json(train_file)
+    test_dataset = Dataset.from_json(test_file)
     
     # Map the processing function over the datasets
     train_dataset = train_dataset.map(
@@ -90,18 +127,14 @@ def main():
         with_indices=True
     )
 
-    # Save datasets
-    local_dir = args.local_dir
-    os.makedirs(local_dir, exist_ok=True)
-    breakpoint()
-    
-    train_dataset.to_parquet(os.path.join(local_dir, 'train.parquet'))
-    test_dataset.to_parquet(os.path.join(local_dir, 'test.parquet'))
+    # Save processed datasets
+    train_dataset.to_parquet(os.path.join(args.local_dir, 'train.parquet'))
+    test_dataset.to_parquet(os.path.join(args.local_dir, 'test.parquet'))
 
     # Copy to HDFS if specified
     if args.hdfs_dir is not None:
         makedirs(args.hdfs_dir)
-        copy(src=local_dir, dst=args.hdfs_dir)
+        copy(src=args.local_dir, dst=args.hdfs_dir)
 
 if __name__ == '__main__':
     main() 
