@@ -8,7 +8,7 @@ from datasets import Dataset
 from typing import List
 from verl.utils.hdfs_io import copy, makedirs
 import argparse
-from huggingface_hub import hf_hub_download
+from huggingface_hub import hf_hub_download, login
 
 
 def load_tomi_data(file_path: str) -> List[dict]:
@@ -75,10 +75,21 @@ def main():
                        help='Number of test examples')
     parser.add_argument('--template_type', type=str, default='base',
                        help='Template type for prompts')
+    parser.add_argument('--hf_token', type=str, default=None,
+                       help='Hugging Face authentication token')
     args = parser.parse_args()
 
     # Create local directory if it doesn't exist
     os.makedirs(args.local_dir, exist_ok=True)
+
+    # Authenticate with Hugging Face if token is provided
+    if args.hf_token:
+        login(token=args.hf_token)
+    elif os.getenv("HUGGINGFACE_TOKEN"):
+        login(token=os.getenv("HUGGINGFACE_TOKEN"))
+    else:
+        print("Warning: No Hugging Face token provided. Set HF_TOKEN environment variable or use --hf_token")
+        print("You can find your token at https://huggingface.co/settings/tokens")
 
     # Check if TOMI files exist, if not download from Huggingface
     train_file = os.path.join(args.local_dir, f'{args.tomi_file}_train.jsonl')
@@ -93,6 +104,7 @@ def main():
             repo_id=repo_id,
             filename=train_filename,
             repo_type="dataset"
+            
         )
         downloaded_test_file = hf_hub_download(
             repo_id=repo_id,
